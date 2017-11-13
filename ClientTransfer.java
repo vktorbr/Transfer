@@ -2,74 +2,60 @@ package Transfer;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class ClientTransfer {
+	
 	public static void main(String[] args) {
-
-		//Criando Classe cliente para receber arquivo
+		Scanner in = new Scanner(System.in);
+		//Cria uma classe cliente para receber arquivos
 		ClientTransfer cliente = new ClientTransfer();
-
-		//Solicitando arquivo
-		cliente.getFileFromServeR();
+		//
+		/*System.out.println("---------------INSTRUÇÕES---------------");
+		System.out.println("Digite i para iniciar uma transferência");
+		System.out.println("Digite p para pausar uma transferência");
+		System.out.println("Digite c para cancelar uma transferência");
+		System.out.println("Digite r para reiniciar uma transferência");
+		*/
+	
+				System.out.println("DIGITE O IP DO EMISSOR");
+				String ip = in.nextLine();
+				System.out.println("DIGITE A PORTA DO EMISSOR");
+				int porta = in.nextInt();
+				System.out.println("DIGITE O DIRETORIO DE DESTINO");
+				String diretorio=in.nextLine();
+				//solicita arquivo
+				cliente.getFileFromServer(ip, porta, diretorio);
 	}
-
-	private void getFileFromServeR() {
-		Socket sockServer = null;
-		FileOutputStream fos = null;
-		InputStream is = null;
-
+	
+	private void getFileFromServer(String ip, int porta, String diretorio) {
+		Socket socket = null;
+		FileOutputStream dos = null;
+		InputStream dis = null;
+		
 		try {
-			// Criando conexão com o servidor
-			System.out.println("Conectando com Servidor porta 13267");
-			sockServer = new Socket("127.0.0.1", 13267);
-			is = sockServer.getInputStream();
-
-			// Cria arquivo local no cliente
-			fos = new FileOutputStream(new File("c:\\Users\\vms5\\Downloads\\BOLSONARO2018.zip"));
-			System.out.println("Arquivo Local Criado em c:\\Users\\vms5\\Downloads\\BOLSONARO2018.zip");
+			//cria conexão com o servidor
+			System.out.println("Conectando com o Servidor pela porta: "+porta);
+			socket = new Socket(ip, porta);
+			dis=socket.getInputStream();
 			
-			// Prepara variaveis para transferencia
-			byte[] cbuffer = new byte[1024];
-			int bytesRead;
-
-			// Copia conteudo do canal
+			//cria arquivo local no destinatário
+			dos=new FileOutputStream(new File("diretorio.zip"));
+			
+			//variaveis para transferencia
+			byte [] buffer= new byte[1024];
+			int byteRead;
+			
 			System.out.println("Recebendo arquivo...");
-			while ((bytesRead = is.read(cbuffer)) != -1) {
-				fos.write(cbuffer, 0, bytesRead);
-				fos.flush();
+			while((byteRead=dis.read(buffer))!=-1) {
+				dos.write(buffer, 0, byteRead);
+				dos.flush();
 			}
-			
 			System.out.println("Arquivo recebido!");
-		} catch (Exception e) {
+		}catch(Exception e) {
 			e.printStackTrace();
-		} finally {
-			if (sockServer != null) {
-				try {
-					sockServer.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
-
-			if (fos != null) {
-				try {
-					fos.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
-
-			if (is != null) {
-				try {
-					is.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
 		}
-
 	}
 }

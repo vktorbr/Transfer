@@ -2,84 +2,55 @@ package Transfer;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
 public class ServerTransfer {
 	public static void main(String[] args) {
 
-		// Criando servidor
+		// Cria um servidor
 		ServerTransfer server = new ServerTransfer();
 
-		// Aguardar conexao de cliente para transferia
+		// Aguarda conexao de cliente para transferencia
 		server.waitForClient();	
 	}
-
+	
 	public void waitForClient() {
-		// Checa se a transferencia foi completada com sucesso
-		OutputStream socketOut = null;
-		ServerSocket servsock = null;
+		OutputStream dos = null;
+		ServerSocket serverSocket = null;
 		FileInputStream fileIn = null;
-
+		
 		try {
-			// Abrindo porta para conexao de clients
-			servsock = new ServerSocket(13267);
-			System.out.println("Porta de conexao aberta 13267");
-
-			// Cliente conectado
-			Socket sock = servsock.accept();
-			System.out.println("Conexao recebida pelo cliente");
-
-			// Criando tamanho de leitura
-			byte[] cbuffer = new byte[1024];
+			//abrindo porta para conexao
+			serverSocket = new ServerSocket(12345);
+			System.out.println("Porta de conexao aberta 12345");
+			
+			//Cliente conectado
+			Socket socket = serverSocket.accept();
+			System.out.println("Conexao recebedida pelo cliente");
+			
+			//Criando tamanho de leitura
+			byte[] buffer = new byte[1024];
 			int bytesRead;
 			
-			// Criando arquivo que sera transferido pelo servidor
-			File file = new File("c:\\Users\\vms5\\Downloads\\halliday.zip");
+			//Criando arquivo que sera transferido pelo servidor
+			File file = new File("c:\\\\Users\\\\vms5\\\\Downloads\\\\halliday.zip");
 			fileIn = new FileInputStream(file);
 			System.out.println("Lendo arquivo...");
 			
-			// Criando canal de transferencia
-			socketOut = sock.getOutputStream();
-
-			// Lendo arquivo criado e enviado para o canal de transferencia
-			System.out.println("Enviando Arquivo...");
-			while ((bytesRead = fileIn.read(cbuffer)) != -1) {
-				socketOut.write(cbuffer, 0, bytesRead);
-				socketOut.flush();
+			//criando canal de transferencia
+			dos=socket.getOutputStream();
+			
+			while((bytesRead=fileIn.read(buffer))!=-1) {
+				dos.write(buffer, 0, bytesRead);
+				dos.flush();
 			}
-
-			System.out.println("Arquivo Enviado!");
-		} catch (Exception e) {
-			// Mostra erro no console
+			System.out.println("Arquivo enviado!");
+		}catch(Exception e) {
 			e.printStackTrace();
-		} finally {
-			if (socketOut != null) {
-				try {
-					socketOut.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-
-			if (servsock != null) {
-				try {
-					servsock.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-
-			if (fileIn != null) {
-				try {
-					fileIn.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 	}
+
+	
 }
