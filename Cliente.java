@@ -1,37 +1,77 @@
-package Transfer;
-
-
-import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.util.Scanner;
 
-public class Cliente implements Runnable {
-	Socket socket;
-	DataOutputStream dos;
-	static Scanner in = new Scanner(System.in);
-	public Cliente(String ip, int port) throws IOException{
-		this.socket=new Socket(ip, port);
-		this.dos=new DataOutputStream(socket.getOutputStream());
-	}
+public class Cliente implements Runnable{
+    Socket sockServer;
+    boolean pausado;
+    public Cliente(String ip, int port) throws IOException {
+        //Cria conexao com o servidor
+        System.out.println("Conectado com o servidor pela porta: "+port);
+        sockServer = new Socket(ip, port);
+    }
+    public synchronized void verificaPausa() throws InterruptedException {
+        while(pausado){
+            wait();
+            System.out.println("A TRANSFERENCIA FOI PAUSADA!");
+        }
+    }
 
-	
-	public void sendMessage(String message) throws IOException {
-		this.dos.writeUTF(message);
-		this.dos.flush();
-	}
-	
-	public void run() {
-		
-		while(true) {
-			try {
-				sendMessage(in.next());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-	
+    public synchronized void setPausado(boolean pausado){
+        this.pausado=pausado;
+        if(!this.pausado){
+            notifyAll();
+            System.out.println("A TRANSFERENCIA FOI RETORNADA!");
+        }
+    }
+
+    public void run() {
+        FileOutputStream fos = null;
+        InputStream is = null;
+        try {
+            is = sockServer.getInputStream();
+            // Cria arquivo local no cliente
+            fos = new FileOutputStream(new File("c:\\Users\\Wykthor\\Desktop\\batman.mkv"));
+            System.out.println("Arquivo Local Criado");
+            // Prepara variaveis para transferencia
+            byte[] cbuffer = new byte[1024];
+            int bytesRead;
+            // Copia conteudo do canal
+            System.out.println("Recebendo arquivo...");
+            while ((bytesRead = is.read(cbuffer)) != -1) {
+                verificaPausa();
+                fos.write(cbuffer, 0, bytesRead);
+                fos.flush();
+            }System.out.println("Arquivo recebido!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (sockServer != null) {
+                try {
+                    sockServer.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+
+    }
 }
